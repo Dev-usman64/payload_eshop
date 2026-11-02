@@ -69,6 +69,16 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    products: Product;
+    categories: Category;
+    orders: Order;
+    comments: Comment;
+    pages: Page;
+    customers: Customer;
+    reviews: Review;
+    coupons: Coupon;
+    brands: Brand;
+    faqs: Faq;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,17 +88,33 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    coupons: CouponsSelect<false> | CouponsSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
+    faqs: FaqsSelect<false> | FaqsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    navigation: Navigation;
+    'general-settings': GeneralSetting;
+  };
+  globalsSelect: {
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
+    'general-settings': GeneralSettingsSelect<false> | GeneralSettingsSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -122,7 +148,12 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
+  name: string;
+  /**
+   * User ka role select karein taaki usko mukarrara access mil sake.
+   */
+  role: 'admin' | 'product-manager' | 'order-manager' | 'customer';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -148,7 +179,7 @@ export interface User {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -164,10 +195,261 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  title: string;
+  slug: string;
+  regularPrice: number;
+  salePrice?: number | null;
+  stock?: number | null;
+  sku?: string | null;
+  shortDescription?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  images: (number | Media)[];
+  category?: (number | null) | Category;
+  variants?:
+    | {
+        size?: string | null;
+        color?: string | null;
+        additionalPrice?: number | null;
+        variantStock?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  isFeatured?: boolean | null;
+  /**
+   * Manage search engine visibility and social sharing for this product.
+   */
+  seo?: {
+    /**
+     * Recommended: 50-60 characters. Leave blank to use product title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Recommended: 150-160 characters for search snippet.
+     */
+    metaDescription?: string | null;
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  slug: string;
+  /**
+   * Agar yeh aik sub-category hai, toh iska parent select karein ( warna khali chhor dein ).
+   */
+  parent?: (number | null) | Category;
+  description?: string | null;
+  image?: (number | null) | Media;
+  isFeatured?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  customerName: string;
+  email: string;
+  phone: string;
+  address: string;
+  product: number | Product;
+  quantity: number;
+  totalPrice: string;
+  status?: ('pending' | 'processing' | 'completed' | 'cancelled') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  author: string;
+  email: string;
+  comment: string;
+  rating?: number | null;
+  product: number | Product;
+  /**
+   * Check this box to allow this comment to appear on the site.
+   */
+  isApproved?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  slug: string;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  publishedDate?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  address?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  /**
+   * Yeh review kis product ke liye hai.
+   */
+  product: number | Product;
+  /**
+   * Kis customer ne review diya hai.
+   */
+  customer: number | Customer;
+  /**
+   * 1 (Worst) se lekar 5 (Best) tak stars.
+   */
+  rating: number;
+  title: string;
+  content: string;
+  /**
+   * Jab tak yeh check nahi hoga, review website par show nahi hoga.
+   */
+  isApproved?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons".
+ */
+export interface Coupon {
+  id: number;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  minOrderAmount?: number | null;
+  usageLimit?: number | null;
+  /**
+   * Agar yeh coupon sirf specific customers ke liye hai, toh unke emails yahan add karein (khali chhorne par sab ke liye valid hoga).
+   */
+  allowedEmails?:
+    | {
+        email: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Sirf inhi products par coupon apply hoga (agar select kiye jayein).
+   */
+  restrictedProducts?: (number | Product)[] | null;
+  /**
+   * Sirf inhi categories ke products par coupon apply hoga.
+   */
+  restrictedCategories?: (number | Category)[] | null;
+  expiryDate?: string | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands".
+ */
+export interface Brand {
+  id: number;
+  title: string;
+  slug: string;
+  /**
+   * Agar yeh aik sub-brand hai, toh iska parent brand select karein ( warna khali chhor dein ).
+   */
+  parent?: (number | null) | Brand;
+  logo?: (number | null) | Media;
+  description?: string | null;
+  isFeatured?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs".
+ */
+export interface Faq {
+  id: number;
+  /**
+   * Customer ka aam sawal (e.g. What is your return policy?)
+   */
+  question: string;
+  /**
+   * Sawal ka mukammal jawab.
+   */
+  answer: string;
+  category?: ('general' | 'shipping' | 'payments' | 'returns') | null;
+  /**
+   * Website par kis tarteeb (1, 2, 3...) mein show karna hai.
+   */
+  order?: number | null;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -184,20 +466,60 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
+      } | null)
+    | ({
+        relationTo: 'coupons';
+        value: number | Coupon;
+      } | null)
+    | ({
+        relationTo: 'brands';
+        value: number | Brand;
+      } | null)
+    | ({
+        relationTo: 'faqs';
+        value: number | Faq;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -207,10 +529,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -230,7 +552,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -241,6 +563,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -276,6 +600,173 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  regularPrice?: T;
+  salePrice?: T;
+  stock?: T;
+  sku?: T;
+  shortDescription?: T;
+  description?: T;
+  images?: T;
+  category?: T;
+  variants?:
+    | T
+    | {
+        size?: T;
+        color?: T;
+        additionalPrice?: T;
+        variantStock?: T;
+        id?: T;
+      };
+  isFeatured?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  parent?: T;
+  description?: T;
+  image?: T;
+  isFeatured?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  customerName?: T;
+  email?: T;
+  phone?: T;
+  address?: T;
+  product?: T;
+  quantity?: T;
+  totalPrice?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  author?: T;
+  email?: T;
+  comment?: T;
+  rating?: T;
+  product?: T;
+  isApproved?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  content?: T;
+  publishedDate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  address?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  product?: T;
+  customer?: T;
+  rating?: T;
+  title?: T;
+  content?: T;
+  isApproved?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "coupons_select".
+ */
+export interface CouponsSelect<T extends boolean = true> {
+  code?: T;
+  discountType?: T;
+  discountValue?: T;
+  minOrderAmount?: T;
+  usageLimit?: T;
+  allowedEmails?:
+    | T
+    | {
+        email?: T;
+        id?: T;
+      };
+  restrictedProducts?: T;
+  restrictedCategories?: T;
+  expiryDate?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  parent?: T;
+  logo?: T;
+  description?: T;
+  isFeatured?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faqs_select".
+ */
+export interface FaqsSelect<T extends boolean = true> {
+  question?: T;
+  answer?: T;
+  category?: T;
+  order?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -316,6 +807,117 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: number;
+  mainMenu?:
+    | {
+        label: string;
+        type?: ('custom' | 'category' | 'page') | null;
+        url?: string | null;
+        category?: (number | null) | Category;
+        page?: (number | null) | Page;
+        subMenu?:
+          | {
+              label: string;
+              url: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-settings".
+ */
+export interface GeneralSetting {
+  id: number;
+  siteName: string;
+  tagline?: string | null;
+  /**
+   * Footer mein logo ke neeche show hone wala chota intro text.
+   */
+  footerDescription?: string | null;
+  copyrightText?: string | null;
+  logo?: (number | null) | Media;
+  favicon?: (number | null) | Media;
+  showAnnouncement?: boolean | null;
+  announcementText?: string | null;
+  announcementLink?: string | null;
+  supportEmail?: string | null;
+  phoneNumber?: string | null;
+  address?: string | null;
+  facebook?: string | null;
+  instagram?: string | null;
+  twitter?: string | null;
+  youtube?: string | null;
+  currencySymbol?: string | null;
+  taxRate?: number | null;
+  maintenanceMode?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  mainMenu?:
+    | T
+    | {
+        label?: T;
+        type?: T;
+        url?: T;
+        category?: T;
+        page?: T;
+        subMenu?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-settings_select".
+ */
+export interface GeneralSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  tagline?: T;
+  footerDescription?: T;
+  copyrightText?: T;
+  logo?: T;
+  favicon?: T;
+  showAnnouncement?: T;
+  announcementText?: T;
+  announcementLink?: T;
+  supportEmail?: T;
+  phoneNumber?: T;
+  address?: T;
+  facebook?: T;
+  instagram?: T;
+  twitter?: T;
+  youtube?: T;
+  currencySymbol?: T;
+  taxRate?: T;
+  maintenanceMode?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
