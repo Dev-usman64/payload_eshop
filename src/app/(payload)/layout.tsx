@@ -27,5 +27,4 @@ const Layout = ({ children }: Args) => (
     {children}
   </RootLayout>
 )
-
 export default Layout
